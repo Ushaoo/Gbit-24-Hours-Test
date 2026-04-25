@@ -1,0 +1,1123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>职业共生工坊</title>
+  <style>
+    :root {
+      --bg-deep: #090f16;
+      --bg-mid: #111b28;
+      --panel: rgba(13, 21, 33, 0.86);
+      --line: rgba(255, 255, 255, 0.14);
+      --text: #eef4ff;
+      --muted: #9db0c8;
+      --gold: #f3c980;
+      --mint: #83e8ca;
+      --rose: #f2a6aa;
+      --shadow: 0 22px 64px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Aptos", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(circle at 12% 12%, rgba(131, 232, 202, 0.14), transparent 32%),
+        radial-gradient(circle at 88% 8%, rgba(243, 201, 128, 0.12), transparent 28%),
+        linear-gradient(180deg, var(--bg-mid) 0%, var(--bg-deep) 70%);
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.24;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: radial-gradient(circle at center, black 38%, transparent 100%);
+    }
+
+    .app {
+      width: min(1240px, calc(100vw - 28px));
+      margin: 14px auto;
+      position: relative;
+      z-index: 1;
+      height: calc(100vh - 28px);
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+      animation: fadeIn .25s ease;
+    }
+
+    .screen.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 16px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .btn.primary {
+      color: #241800;
+      background: linear-gradient(135deg, var(--gold), #ffe6bb);
+    }
+
+    .btn.secondary {
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .btn.ghost {
+      color: #dce9f8;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .field-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin: 10px 0 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: var(--text);
+      background: rgba(6, 11, 19, 0.84);
+      font: inherit;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 140px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .home {
+      display: grid;
+      place-items: center;
+      height: 100%;
+    }
+
+    .home-box {
+      width: min(820px, 100%);
+      text-align: center;
+      padding: 36px 26px 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .home-box::after {
+      content: "";
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      right: -70px;
+      bottom: -78px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(131, 232, 202, 0.32), transparent 68%);
+      filter: blur(8px);
+      animation: floatGlow 8s ease-in-out infinite;
+    }
+
+    @keyframes floatGlow {
+      0%,100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.08) translateY(-10px); }
+    }
+
+    .logo-badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(131, 232, 202, 0.45);
+      background: rgba(131, 232, 202, 0.12);
+      color: #cefaec;
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    .game-title {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 62px);
+      letter-spacing: -0.04em;
+      line-height: 1.03;
+    }
+
+    .game-sub {
+      margin: 14px auto 0;
+      color: var(--muted);
+      line-height: 1.8;
+      max-width: 56ch;
+      font-size: 14px;
+    }
+
+    .home-actions {
+      margin-top: 22px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .setup {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .setup-left, .setup-right {
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .setup-title {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .setup-sub {
+      margin: 8px 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .upload-zone {
+      border: 1px dashed rgba(255,255,255,0.28);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      margin-top: 10px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .setup-actions {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .game {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .scene-panel {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .scene-art {
+      flex: 1;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background:
+        linear-gradient(180deg, rgba(131, 232, 202, 0.2), rgba(10, 16, 26, 0.32)),
+        linear-gradient(150deg, #1a3853 0%, #12283b 44%, #202f40 100%);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .scene-job {
+      font-size: 24px;
+      font-weight: 700;
+      text-shadow: 0 9px 24px rgba(0,0,0,0.45);
+    }
+
+    .scene-type {
+      color: #d4e6fb;
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 28ch;
+    }
+
+    .progress-box {
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 9px;
+      background: rgba(0,0,0,0.24);
+    }
+
+    .progress-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #d2e7fe;
+      margin-bottom: 7px;
+    }
+
+    .progress {
+      height: 8px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress > div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--mint), var(--gold));
+      transition: width .22s ease;
+    }
+
+    .history-panel {
+      max-height: 220px;
+      overflow: auto;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      padding: 8px;
+    }
+
+    .history-item {
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 10px;
+      padding: 8px;
+      background: rgba(6, 11, 18, 0.78);
+      margin-bottom: 8px;
+    }
+
+    .history-item:last-child { margin-bottom: 0; }
+
+    .history-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      color: #cae4fd;
+      margin-bottom: 4px;
+    }
+
+    .history-choice {
+      color: #f8e5c0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .history-feedback {
+      color: #afc4da;
+      font-size: 12px;
+      line-height: 1.55;
+      margin-top: 4px;
+      white-space: pre-wrap;
+    }
+
+    .story-panel {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .story-title {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .story-text {
+      margin: 0;
+      color: #dde9f8;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      flex: 1;
+      overflow: auto;
+      padding-right: 4px;
+      font-size: 15px;
+    }
+
+    .choices {
+      display: grid;
+      gap: 8px;
+    }
+
+    .choice {
+      text-align: left;
+      width: 100%;
+      padding: 11px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+      transition: .16s ease;
+    }
+
+    .choice:hover {
+      border-color: rgba(131, 232, 202, 0.5);
+      background: rgba(131, 232, 202, 0.14);
+    }
+
+    .choice small {
+      display: block;
+      color: var(--muted);
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+    .feedback {
+      min-height: 78px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.04);
+      padding: 10px;
+      line-height: 1.7;
+      color: #edf7ff;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .game-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .error {
+      color: var(--rose);
+      font-size: 12px;
+      line-height: 1.55;
+      min-height: 20px;
+    }
+
+    @media (max-width: 1020px) {
+      .setup, .game { grid-template-columns: 1fr; }
+      .app { height: auto; }
+      body { overflow: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="screenHome" class="screen active">
+      <div class="home">
+        <div class="home-box card">
+          <span class="logo-badge">AI 时代职业文字游戏</span>
+          <h1 class="game-title">职业共生工坊</h1>
+          <p class="game-sub">
+            你将以职业体验者身份进入不同职业的真实场景，在多阶段任务里做出判断、承担后果，并逐步理解职业世界。
+          </p>
+          <div class="home-actions">
+            <button id="btnGoSetup" class="btn primary">开始游戏</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenSetup" class="screen">
+      <div class="setup">
+        <article class="setup-left card">
+          <h2 class="setup-title">开局配置</h2>
+          <p class="setup-sub">先选择职业包和模型参数，再开始第一阶段。</p>
+
+          <label class="field-label" for="officialPack">官方职业包</label>
+          <select id="officialPack">
+            <option value="packs/宠物行为师.json">宠物行为师</option>
+            <option value="packs/独立游戏制作人.json">独立游戏制作人</option>
+            <option value="packs/康复治疗师.json">康复治疗师</option>
+          </select>
+
+          <div class="upload-zone">
+            <label class="field-label" for="uploadPack" style="margin-top:0;">上传自定义职业包（JSON）</label>
+            <input id="uploadPack" type="file" accept="application/json,.json" />
+            <p class="hint" id="uploadHint">未上传文件，将使用官方职业包。</p>
+          </div>
+
+          <label class="field-label" for="customPackText">或直接粘贴职业包 JSON（优先级最高）</label>
+          <textarea id="customPackText" placeholder="可选：粘贴完整 JSON"></textarea>
+
+          <div class="upload-zone">
+            <label class="field-label" for="packifyText" style="margin-top:0;">AI 生成功能：输入职业描述，自动整理为 JSON</label>
+            <textarea id="packifyText" placeholder="例如：我想做一款厨师职业包，突出高峰期出餐压力、食材判断和团队协作..."></textarea>
+            <div class="setup-actions">
+              <button id="btnPackify" class="btn secondary">生成职业包 JSON</button>
+            </div>
+            <p class="hint">生成后会自动填入上方 JSON 区域，你可以直接继续开局。</p>
+          </div>
+        </article>
+
+        <article class="setup-right card">
+          <h2 class="setup-title">生成模型配置</h2>
+          <p class="setup-sub">这些配置用于首阶段生成与后续阶段推进。</p>
+
+          <div class="row">
+            <div>
+              <label class="field-label" for="modelName">模型名</label>
+              <input id="modelName" value="deepseek-chat" />
+            </div>
+            <div>
+              <label class="field-label" for="maxStage">总阶段</label>
+              <input id="maxStage" type="number" min="3" max="9" step="1" value="5" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label class="field-label" for="temperature">温度</label>
+              <input id="temperature" type="number" min="0" max="1.5" step="0.1" value="0.7" />
+            </div>
+            <div>
+              <label class="field-label" for="apiKey">DeepSeek API Key</label>
+              <input id="apiKey" type="password" placeholder="可留空使用后端环境变量" />
+            </div>
+          </div>
+
+          <label class="field-label" for="endpointGenerate">首阶段接口</label>
+          <input id="endpointGenerate" value="http://127.0.0.1:8787/api/generate" />
+
+          <label class="field-label" for="endpointContinue">续阶段接口</label>
+          <input id="endpointContinue" value="http://127.0.0.1:8787/api/continue" />
+
+          <div class="setup-actions">
+            <button id="btnStartRun" class="btn primary">生成并进入游戏</button>
+            <button id="btnBackHomeFromSetup" class="btn ghost">返回主页</button>
+          </div>
+
+          <p class="hint">提示：如果后端暂时失败，系统会自动回退到模拟生成，保证流程可继续。</p>
+          <p id="setupError" class="error"></p>
+        </article>
+      </div>
+    </section>
+
+    <section id="screenGame" class="screen">
+      <div class="game">
+        <article class="scene-panel card">
+          <div class="scene-art">
+            <div>
+              <div id="sceneJob" class="scene-job">职业名称</div>
+              <div id="sceneType" class="scene-type">职业类型与风格</div>
+            </div>
+            <div class="progress-box">
+              <div class="progress-head">
+                <span id="stageLabel">阶段 0 / 5</span>
+                <span id="statusLabel">待机</span>
+              </div>
+              <div class="progress"><div id="stageBar"></div></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:6px;">阶段记录（可回看之前选择）</div>
+            <div id="historyList" class="history-panel"></div>
+          </div>
+        </article>
+
+        <article class="story-panel card">
+          <h2 id="storyTitle" class="story-title">游戏进行中</h2>
+          <p id="storyText" class="story-text">剧情会在这里出现。</p>
+
+          <div id="choiceList" class="choices"></div>
+
+          <div id="feedback" class="feedback">请选择一个选项以推进剧情。</div>
+
+          <div class="game-actions">
+            <div class="meta" id="gameMeta">来源：未生成</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button id="btnNextStage" class="btn secondary" disabled>进入下一阶段</button>
+              <button id="btnRestartGame" class="btn secondary" disabled>重新开局</button>
+              <button id="btnBackSetup" class="btn ghost">返回配置</button>
+              <button id="btnBackHome" class="btn ghost">返回主页</button>
+            </div>
+          </div>
+
+          <p id="gameError" class="error"></p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const REQUIRED_FIELDS = [
+      'profession', 'type', 'audience', 'coreSkills', 'workflow', 'scenarios', 'constraints', 'cases', 'style'
+    ];
+
+    const appState = {
+      pack: null,
+      uploadedPack: null,
+      stage: 0,
+      maxStage: 5,
+      currentResult: null,
+      selectedChoiceIndex: null,
+      source: '未生成',
+      history: []
+    };
+
+    const el = {
+      screens: {
+        home: document.getElementById('screenHome'),
+        setup: document.getElementById('screenSetup'),
+        game: document.getElementById('screenGame')
+      },
+      btnGoSetup: document.getElementById('btnGoSetup'),
+      btnBackHomeFromSetup: document.getElementById('btnBackHomeFromSetup'),
+      btnStartRun: document.getElementById('btnStartRun'),
+      btnNextStage: document.getElementById('btnNextStage'),
+      btnRestartGame: document.getElementById('btnRestartGame'),
+      btnBackSetup: document.getElementById('btnBackSetup'),
+      btnBackHome: document.getElementById('btnBackHome'),
+
+      officialPack: document.getElementById('officialPack'),
+      uploadPack: document.getElementById('uploadPack'),
+      uploadHint: document.getElementById('uploadHint'),
+      customPackText: document.getElementById('customPackText'),
+      packifyText: document.getElementById('packifyText'),
+      btnPackify: document.getElementById('btnPackify'),
+
+      modelName: document.getElementById('modelName'),
+      maxStage: document.getElementById('maxStage'),
+      temperature: document.getElementById('temperature'),
+      apiKey: document.getElementById('apiKey'),
+      endpointGenerate: document.getElementById('endpointGenerate'),
+      endpointContinue: document.getElementById('endpointContinue'),
+
+      setupError: document.getElementById('setupError'),
+      gameError: document.getElementById('gameError'),
+
+      sceneJob: document.getElementById('sceneJob'),
+      sceneType: document.getElementById('sceneType'),
+      stageLabel: document.getElementById('stageLabel'),
+      statusLabel: document.getElementById('statusLabel'),
+      stageBar: document.getElementById('stageBar'),
+
+      storyTitle: document.getElementById('storyTitle'),
+      storyText: document.getElementById('storyText'),
+      choiceList: document.getElementById('choiceList'),
+      feedback: document.getElementById('feedback'),
+      gameMeta: document.getElementById('gameMeta'),
+      historyList: document.getElementById('historyList')
+    };
+
+    function showScreen(name) {
+      Object.values(el.screens).forEach(node => node.classList.remove('active'));
+      el.screens[name].classList.add('active');
+    }
+
+    function setSetupError(message) {
+      el.setupError.textContent = message || '';
+    }
+
+    function setGameError(message) {
+      el.gameError.textContent = message || '';
+    }
+
+    function validatePack(pack) {
+      if (!pack || typeof pack !== 'object') {
+        throw new Error('职业包不是有效对象');
+      }
+      for (const key of REQUIRED_FIELDS) {
+        if (!(key in pack)) {
+          throw new Error(`职业包缺少字段：${key}`);
+        }
+      }
+      return pack;
+    }
+
+    async function loadSelectedOfficialPack() {
+      const path = el.officialPack.value;
+      const resp = await fetch(path);
+      if (!resp.ok) {
+        throw new Error(`官方职业包加载失败：${path}`);
+      }
+      return validatePack(await resp.json());
+    }
+
+    async function resolvePack() {
+      const pasted = el.customPackText.value.trim();
+      if (pasted) {
+        return validatePack(JSON.parse(pasted));
+      }
+
+      if (appState.uploadedPack) {
+        return validatePack(appState.uploadedPack);
+      }
+
+      return loadSelectedOfficialPack();
+    }
+
+    function updateSceneInfo() {
+      if (!appState.pack) return;
+      el.sceneJob.textContent = appState.pack.profession;
+      el.sceneType.textContent = `${appState.pack.type} · ${appState.pack.style}`;
+    }
+
+    function updateProgress(statusText) {
+      const max = Math.max(1, appState.maxStage);
+      const progress = Math.min(100, (appState.stage / max) * 100);
+      el.stageLabel.textContent = `阶段 ${appState.stage} / ${appState.maxStage}`;
+      el.stageBar.style.width = `${progress}%`;
+      el.statusLabel.textContent = statusText || '进行中';
+    }
+
+    function renderHistory() {
+      if (!appState.history.length) {
+        el.historyList.innerHTML = '<div class="hint">还没有阶段记录。</div>';
+        return;
+      }
+
+      el.historyList.innerHTML = appState.history.map(item => `
+        <div class="history-item">
+          <div class="history-top">
+            <span>阶段 ${item.stage}</span>
+            <span>${item.source}</span>
+          </div>
+          <div class="history-choice">${item.choiceLabel || '未选择'}</div>
+          <div class="history-feedback">${item.feedback || ''}</div>
+        </div>
+      `).join('');
+    }
+
+    function buildRouteLabels() {
+      return appState.history.map(item => `阶段 ${item.stage}：${item.choiceLabel}`).join(' · ');
+    }
+
+    function updateNextButtonLabel() {
+      if (appState.stage >= appState.maxStage) {
+        el.btnNextStage.textContent = '生成结局报告';
+      } else {
+        el.btnNextStage.textContent = '进入下一阶段';
+      }
+    }
+
+    function renderResult(result) {
+      appState.currentResult = result;
+      appState.selectedChoiceIndex = null;
+      el.btnNextStage.disabled = true;
+      updateNextButtonLabel();
+
+      el.storyTitle.textContent = result.title || `${appState.pack.profession} · 阶段 ${appState.stage}`;
+      el.storyText.textContent = result.hook || '';
+      el.feedback.textContent = '请选择一个选项，系统将记录你的决策。';
+      el.gameMeta.textContent = `来源：${appState.source}`;
+      setGameError('');
+
+      const choices = Array.isArray(result.choices) ? result.choices : [];
+      el.choiceList.innerHTML = choices.map((c, i) => `
+        <button class="choice" data-index="${i}">
+          ${c.label || `选项 ${i + 1}`}
+          <small>${c.detail || ''}</small>
+        </button>
+      `).join('');
+
+      [...el.choiceList.querySelectorAll('.choice')].forEach(button => {
+        button.addEventListener('click', () => {
+          appState.selectedChoiceIndex = Number(button.dataset.index);
+          const fb = Array.isArray(result.feedbackByChoice) ? result.feedbackByChoice : [];
+          el.feedback.textContent = fb[appState.selectedChoiceIndex] || '系统已记录选择。';
+          el.btnNextStage.disabled = false;
+          updateNextButtonLabel();
+        });
+      });
+    }
+
+    function renderFinishReport(report) {
+      el.storyTitle.textContent = report.title || '结局报告';
+      el.storyText.textContent = `${report.summary || ''}${report.nextStep ? `\n\n后续建议：${report.nextStep}` : ''}`;
+      el.choiceList.innerHTML = (Array.isArray(report.route) ? report.route : []).map(item => `
+        <div class="history-item">
+          <div class="history-top"><span>路线回顾</span><span>结局</span></div>
+          <div class="history-choice">${item}</div>
+        </div>
+      `).join('');
+      const ratingText = report.rating ? `结局评级：${report.rating}` : '';
+      el.feedback.textContent = [ratingText, report.evaluation || '', report.nextStep || ''].filter(Boolean).join('\n\n');
+      el.gameMeta.textContent = [
+        `标签：${Array.isArray(report.tags) ? report.tags.join(' · ') : ''}`,
+        `路线：${buildRouteLabels()}`
+      ].filter(Boolean).join(' | ');
+      el.btnNextStage.disabled = true;
+      el.btnNextStage.textContent = '已生成结局报告';
+      el.btnRestartGame.disabled = false;
+      setGameError('');
+      appState.currentResult = report;
+    }
+
+    function buildPayloadBase() {
+      return {
+        model: el.modelName.value.trim() || 'deepseek-chat',
+        temperature: Number(el.temperature.value || 0.7),
+        apiKey: el.apiKey.value.trim()
+      };
+    }
+
+    async function requestGenerate() {
+      const resp = await fetch(el.endpointGenerate.value.trim(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...buildPayloadBase(),
+          jobData: appState.pack
+        })
+      });
+
+      if (!resp.ok) {
+        throw new Error(await resp.text());
+      }
+
+      const data = await resp.json();
+      if (!data || !data.result) {
+        throw new Error('后端返回格式无效');
+      }
+
+      appState.source = data.source || '后端 DeepSeek';
+      return data.result;
+    }
+
+    async function requestContinue() {
+      const resp = await fetch(el.endpointContinue.value.trim(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...buildPayloadBase(),
+          jobData: appState.pack,
+          previousResult: appState.currentResult,
+          choiceIndex: appState.selectedChoiceIndex,
+          stage: appState.stage
+        })
+      });
+
+      if (!resp.ok) {
+        throw new Error(await resp.text());
+      }
+
+      const data = await resp.json();
+      if (!data || !data.result) {
+        throw new Error('后端返回格式无效');
+      }
+
+      appState.source = data.source || '后端 DeepSeek';
+      return data.result;
+    }
+
+    async function requestPackify() {
+      const text = el.packifyText.value.trim();
+      if (!text) {
+        throw new Error('请输入一段职业描述');
+      }
+
+      const resp = await fetch(`${el.endpointGenerate.value.trim().replace(/\/api\/generate\/?$/, '')}/packify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...buildPayloadBase(),
+          text
+        })
+      });
+
+      if (!resp.ok) {
+        throw new Error(await resp.text());
+      }
+
+      const data = await resp.json();
+      if (!data || !data.result) {
+        throw new Error('后端返回格式无效');
+      }
+
+      return data.result;
+    }
+
+    async function requestFinishReport() {
+      const resp = await fetch(`${el.endpointGenerate.value.trim().replace(/\/api\/generate\/?$/, '')}/finish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...buildPayloadBase(),
+          jobData: appState.pack,
+          history: appState.history,
+          previousResult: appState.currentResult,
+          stage: appState.stage,
+          maxStage: appState.maxStage
+        })
+      });
+
+      if (!resp.ok) {
+        throw new Error(await resp.text());
+      }
+
+      const data = await resp.json();
+      if (!data || !data.result) {
+        throw new Error('后端返回格式无效');
+      }
+
+      appState.source = data.source || '后端 DeepSeek';
+      return data.result;
+    }
+
+    function mockStage(stage, prevResult, choiceIndex) {
+      const chosen = prevResult?.choices?.[choiceIndex]?.label || '你做出了一个职业决策';
+      const caseText = appState.pack.cases[(stage - 1) % appState.pack.cases.length];
+      return {
+        title: `${appState.pack.profession} · 第 ${stage} 阶段`,
+        hook: stage === 1
+          ? `你正式进入 ${appState.pack.profession} 的工作场景，挑战马上开始。`
+          : `承接上一阶段“${chosen}”，新的变量出现了。`,
+        mission: `当前场景：${caseText}。请在压力和信息不完整的条件下做选择。`,
+        choices: [
+          { label: 'A. 快速执行', detail: '强调效率，风险容忍更高。' },
+          { label: 'B. 先验证再推进', detail: '强调稳健，节奏略慢。' },
+          { label: 'C. 与关键角色先对齐', detail: '强调协同，降低后续返工。' }
+        ],
+        feedbackByChoice: [
+          '系统反馈：推进速度明显提升，但需关注潜在副作用。',
+          '系统反馈：你的策略稳健，误判概率降低。',
+          '系统反馈：团队一致性提高，执行成本略增。'
+        ],
+        knowledgeTips: [
+          `阶段 ${stage} 重点：判断优先级。`,
+          `核心技能关联：${appState.pack.coreSkills[Math.min(stage - 1, appState.pack.coreSkills.length - 1)]}`,
+          '职业能力的本质是持续决策。'
+        ],
+        nextScene: stage >= appState.maxStage ? '你已到达本轮终局。' : `准备进入第 ${stage + 1} 阶段。`
+      };
+    }
+
+    function mockFinishReport() {
+      const route = appState.history.map(item => `第 ${item.stage} 阶段：${item.choiceLabel} -> ${item.feedback}`);
+      return {
+        title: `${appState.pack.profession} · 结局报告`,
+        summary: `${appState.pack.profession} 的体验已完成。\n\n你在这条路线中逐步形成了自己的职业判断方式，整个过程显示出对${appState.pack.type}场景的理解正在变得稳定。`,
+        route,
+        rating: 'B+',
+        evaluation: '你倾向于在不确定条件下先确认信息，再推进决策。',
+        nextStep: '你可以重新开始，体验另一条职业路线。',
+        tags: ['结局', '职业判断', '路径总结']
+      };
+    }
+
+    async function startGameFlow() {
+      try {
+        setSetupError('');
+        appState.maxStage = Math.max(3, Math.min(9, Number(el.maxStage.value || 5)));
+        appState.pack = await resolvePack();
+        appState.stage = 1;
+        appState.history = [];
+        updateSceneInfo();
+        updateProgress('正在生成');
+
+        showScreen('game');
+
+        let result;
+        try {
+          result = await requestGenerate();
+        } catch (error) {
+          appState.source = '模拟模式';
+          result = mockStage(1, null, null);
+          setGameError(`后端生成失败，已回退模拟：${error.message}`);
+        }
+
+        renderResult(result);
+        renderHistory();
+        updateNextButtonLabel();
+        updateProgress('等待选择');
+      } catch (error) {
+        setSetupError(error.message || '开局失败');
+      }
+    }
+
+    async function continueGameFlow() {
+      if (!appState.currentResult || appState.selectedChoiceIndex === null) {
+        setGameError('请先做出一个选项。');
+        return;
+      }
+
+      if (appState.stage >= appState.maxStage) {
+        const feedbackList = appState.currentResult.feedbackByChoice || [];
+        appState.history.push({
+          stage: appState.stage,
+          choiceLabel: appState.currentResult.choices?.[appState.selectedChoiceIndex]?.label || '未知选择',
+          feedback: feedbackList[appState.selectedChoiceIndex] || '',
+          source: appState.source
+        });
+        renderHistory();
+
+        setGameError('');
+        updateProgress('正在生成结局报告');
+
+        let report;
+        try {
+          report = await requestFinishReport();
+        } catch (error) {
+          appState.source = '模拟模式';
+          report = mockFinishReport();
+          setGameError(`后端结局报告生成失败，已回退模拟：${error.message}`);
+        }
+
+        renderFinishReport(report);
+        updateProgress('已完成');
+        return;
+      }
+
+      const feedbackList = appState.currentResult.feedbackByChoice || [];
+      appState.history.push({
+        stage: appState.stage,
+        choiceLabel: appState.currentResult.choices?.[appState.selectedChoiceIndex]?.label || '未知选择',
+        feedback: feedbackList[appState.selectedChoiceIndex] || '',
+        source: appState.source
+      });
+      renderHistory();
+
+      appState.stage += 1;
+      updateProgress('正在生成');
+      setGameError('');
+
+      let result;
+      try {
+        result = await requestContinue();
+      } catch (error) {
+        appState.source = '模拟模式';
+        result = mockStage(appState.stage, appState.currentResult, appState.selectedChoiceIndex);
+        setGameError(`后端续生成失败，已回退模拟：${error.message}`);
+      }
+
+      renderResult(result);
+      updateNextButtonLabel();
+      updateProgress('等待选择');
+    }
+
+    function backToHome() {
+      showScreen('home');
+      setSetupError('');
+      setGameError('');
+    }
+
+    function backToSetup() {
+      showScreen('setup');
+      setGameError('');
+    }
+
+    function restartGame() {
+      appState.pack = null;
+      appState.uploadedPack = null;
+      appState.stage = 0;
+      appState.maxStage = 5;
+      appState.currentResult = null;
+      appState.selectedChoiceIndex = null;
+      appState.source = '未生成';
+      appState.history = [];
+      el.choiceList.innerHTML = '';
+      el.historyList.innerHTML = '<div class="hint">还没有阶段记录。</div>';
+      el.storyTitle.textContent = '游戏进行中';
+      el.storyText.textContent = '剧情会在这里出现。';
+      el.feedback.textContent = '请选择一个选项以推进剧情。';
+      el.gameMeta.textContent = '来源：未生成';
+      el.btnNextStage.textContent = '进入下一阶段';
+      el.btnNextStage.disabled = true;
+      el.btnRestartGame.disabled = true;
+      el.stageBar.style.width = '0%';
+      el.stageLabel.textContent = '阶段 0 / 5';
+      el.statusLabel.textContent = '待机';
+      setGameError('');
+      showScreen('setup');
+    }
+
+    el.btnGoSetup.addEventListener('click', () => showScreen('setup'));
+    el.btnBackHomeFromSetup.addEventListener('click', backToHome);
+    el.btnBackSetup.addEventListener('click', backToSetup);
+    el.btnBackHome.addEventListener('click', backToHome);
+    el.btnRestartGame.addEventListener('click', restartGame);
+    el.btnStartRun.addEventListener('click', startGameFlow);
+    el.btnNextStage.addEventListener('click', continueGameFlow);
+    el.btnPackify.addEventListener('click', async () => {
+      try {
+        setSetupError('');
+        const pack = await requestPackify();
+        el.customPackText.value = JSON.stringify(pack, null, 2);
+        appState.uploadedPack = pack;
+        el.uploadHint.textContent = `AI 已生成职业包：${pack.profession}`;
+      } catch (error) {
+        setSetupError(error.message || 'AI 生成职业包失败');
+      }
+    });
+
+    el.uploadPack.addEventListener('change', async event => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        appState.uploadedPack = null;
+        el.uploadHint.textContent = '未上传文件，将使用官方职业包。';
+        return;
+      }
+
+      try {
+        const text = await file.text();
+        const data = validatePack(JSON.parse(text));
+        appState.uploadedPack = data;
+        el.uploadHint.textContent = `已加载自定义职业包：${file.name}`;
+        setSetupError('');
+      } catch (error) {
+        appState.uploadedPack = null;
+        el.uploadHint.textContent = '上传失败，请确认 JSON 结构正确。';
+        setSetupError(error.message || '上传失败');
+      }
+    });
+
+    el.btnRestartGame.disabled = true;
+  </script>
+</body>
+</html>
